@@ -1,0 +1,20 @@
+---
+- name: Copy file to local directory
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Copy file
+      copy:
+        src: ./test_file.txt
+        dest: ~/test_file_copy.txt
+        mode: '0644'
+
+    - name: Ensure file exists with correct permissions
+      stat:
+        path: ~/test_file_copy.txt
+      register: file_stats
+
+    - name: Display file information
+      debug:
+        var: file_stats

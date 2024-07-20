@@ -1,0 +1,12 @@
+---
+- name: Install npm on webservers
+  hosts: webservers
+
+  tasks:
+    - name: Check npm version
+      command: npm --version
+      register: npm_version
+
+    - name: Display npm version
+      debug:
+        var: npm_version.stdout

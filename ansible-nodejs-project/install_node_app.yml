@@ -1,0 +1,62 @@
+---
+- name: Install, run, and verify Node.js app from GitHub
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Ensure npm is installed
+      command: npm --version
+      register: npm_version
+
+    - name: Display npm version
+      debug:
+        var: npm_version.stdout
+
+    - name: Create directory for the app
+      file:
+        path: ~/nodeapp
+        state: directory
+
+    - name: Clone GitHub repository
+      git:
+        repo: 'https://github.com/heroku/node-js-getting-started.git'
+        dest: ~/nodeapp
+        version: main
+
+    - name: Install app dependencies
+      npm:
+        path: ~/nodeapp
+
+    - name: Start the Node.js application
+      shell: 
+        cmd: nohup npm start > ~/nodeapp.log 2>&1 &
+        chdir: ~/nodeapp
+      async: 1000
+      poll: 0
+
+    - name: Wait for application to start
+      wait_for:
+        port: 5001
+        timeout: 30
+
+    - name: Check application response
+      uri:
+        url: http://localhost:5001
+        return_content: yes
+      register: app_response
+
+    - name: Display application response
+      debug:
+        var: app_response.content
+
+    - name: Ensure application is running on both servers
+      debug:
+        msg: "The application is running successfully on localhost:5001"
+
+    - name: Display application log (last 10 lines)
+      shell: tail -n 10 ~/nodeapp.log
+      register: app_log
+
+    - name: Show application log
+      debug:
+        var: app_log.stdout_lines
